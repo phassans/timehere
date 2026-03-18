@@ -30,7 +30,6 @@
   );
   let timezones = ['America/Los_Angeles', 'Asia/Kolkata'];
   let flipped = false;
-  let pageDetectedSourceTz = null;
 
   function normalizeTzs(list) {
     const src = Array.isArray(list) ? list : [];
@@ -40,7 +39,6 @@
     return clean.slice(0, 4);
   }
   function sourceTz() { return timezones[0]; }
-  function effectiveSourceTz() { return pageDetectedSourceTz || sourceTz(); }
   function firstTargetTz() { return timezones[1] || timezones[0]; }
   function targetTzs() { return timezones.slice(1); }
   function tzAbbr(tz) { return TZ_BY_ID[tz]?.abbr || tz.split('/').pop(); }
@@ -151,18 +149,9 @@
     const m = TZ_RX.exec(t);
     TZ_RX.lastIndex = 0;
     if (m) for (let i = 1; i < m.length; i++) if (m[i]) return TZ_ABBREVS[m[i].toUpperCase()] || null;
+    const bare = fromMatch(new RegExp('\\b(' + TZ_KEYS.join('|') + ')\\b', 'i'));
+    if (bare) return bare;
     return null;
-  }
-  function refreshPageDetectedSourceTz() {
-    const bodyText = document.body?.innerText || document.body?.textContent || '';
-    pageDetectedSourceTz = detectTzInContext(bodyText);
-  }
-  function syncSpanSourceTz() {
-    const src = effectiveSourceTz();
-    document.querySelectorAll('.timehere-span').forEach(span => {
-      if (!span.dataset.h1) return;
-      span.dataset.sz = src;
-    });
   }
   function matchedTargetLabel(text, end, labels) {
     for (let i = 0; i < labels.length; i++) {
@@ -176,6 +165,30 @@
     const prev = start > 0 ? text[start - 1] : ' ';
     const next = end < text.length ? text[end] : ' ';
     return /[A-Za-z0-9]/.test(prev) || /[A-Za-z0-9]/.test(next);
+  }
+  function detectLocalSourceTz(textNode, text, matchStart, raw) {
+    const contexts = [];
+    const lineStart = text.lastIndexOf('\n', matchStart) + 1;
+    const lineEndRaw = text.indexOf('\n', matchStart);
+    const lineEnd = lineEndRaw === -1 ? text.length : lineEndRaw;
+    contexts.push(text.slice(lineStart, lineEnd));
+    const localWindowStart = Math.max(0, matchStart - 48);
+    const localWindowEnd = Math.min(text.length, matchStart + raw.length + 48);
+    contexts.push(text.slice(localWindowStart, localWindowEnd));
+    const parent = textNode.parentElement;
+    const block = parent?.closest?.('p, li, td, th, blockquote, section, article, div');
+    if (block) contexts.push((block.textContent || '').slice(0, 4000));
+    if (location.hostname === 'mail.google.com') {
+      const emailBlock = parent?.closest?.('.a3s, .ii.gt, .adn.ads');
+      if (emailBlock) contexts.push((emailBlock.textContent || '').slice(0, 6000));
+    }
+    for (let i = 0; i < contexts.length; i++) {
+      const ctx = (contexts[i] || '').trim();
+      if (!ctx) continue;
+      const tz = detectTzInContext(ctx);
+      if (tz) return tz;
+    }
+    return null;
   }
 
   let host = null;
@@ -282,7 +295,8 @@
     let p = node?.parentNode;
     while (p && p.nodeType === 1) {
       const t = p.nodeName;
-      if (t === 'INPUT' || t === 'TEXTAREA' || t === 'CODE' || t === 'PRE' || t === 'SCRIPT' || t === 'STYLE' || t === 'TIMEHERE-ROOT') return true;
+      if (t === 'INPUT' || t === 'TEXTAREA' || t === 'CODE' || t === 'PRE' || t === 'SCRIPT' || t === 'STYLE' || t === 'TIME' || t === 'TIMEHERE-ROOT') return true;
+      if (location.hostname === 'mail.google.com' && (p.classList?.contains('g3') || p.classList?.contains('xW'))) return true;
       if (p.getAttribute?.('contenteditable') === 'true' || p.getAttribute?.('role') === 'textbox' || p.getAttribute?.('aria-hidden') === 'true') return true;
       p = p.parentNode;
     }
@@ -297,7 +311,7 @@
     s.addEventListener('mouseleave', hideTooltip);
     return s;
   }
-  function wrapNode(textNode, srcTz) {
+  function wrapNode(textNode) {
     const text = textNode.textContent;
     const labels = targetTzs().map(tzAbbr);
     let lastIdx = 0, lastEnd;
@@ -319,9 +333,11 @@
       const p = parseTime(m, lastEnd);
       lastEnd = p.h2;
       if (p.h1 > 23 || p.h2 > 23) continue;
+      const localSrcTz = detectLocalSourceTz(textNode, text, m.index, raw);
+      if (!localSrcTz) continue;
       const dayIdx = dayIndexFromContext(text, m.index, raw);
       frag.appendChild(document.createTextNode(text.slice(lastIdx, m.index)));
-      const d = { h1: p.h1, m1: p.m1, h2: p.h2, m2: p.m2, sz: srcTz, raw };
+      const d = { h1: p.h1, m1: p.m1, h2: p.h2, m2: p.m2, sz: localSrcTz, raw };
       if (dayIdx !== null) d.sd = dayIdx;
       const span = makeSpan(d);
       span.textContent = raw;
@@ -344,8 +360,7 @@
       if (isSkipTag(n) || n.parentNode?.classList?.contains('timehere-span')) continue;
       if (TIME_RX.test(txt)) toWrap.push(n);
     }
-    const src = effectiveSourceTz();
-    toWrap.forEach(node => wrapNode(node, src));
+    toWrap.forEach(node => wrapNode(node));
     const it = document.createNodeIterator(root, NodeFilter.SHOW_ELEMENT, null, false);
     let el;
     while ((el = it.nextNode())) if (el.shadowRoot) scan(el.shadowRoot);
@@ -422,9 +437,7 @@
     scanScheduled = false;
     const nodes = Array.from(scanQueue);
     scanQueue.clear();
-    refreshPageDetectedSourceTz();
     nodes.forEach(scan);
-    syncSpanSourceTz();
     if (flipped) renderFlip();
     syncTogglePill();
   }
@@ -438,9 +451,7 @@
     else setTimeout(flush, 60);
   }
 
-  refreshPageDetectedSourceTz();
   scan(document.body);
-  syncSpanSourceTz();
   if (flipped) renderFlip();
   syncTogglePill();
   new MutationObserver(muts => {
