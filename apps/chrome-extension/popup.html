@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>TimeHere</title>
+  <style>
+    :root {
+      --bg: #fff;
+      --fg: #111;
+      --muted: #6b7280;
+      --muted-2: #9ca3af;
+      --line: #e5e7eb;
+      --hover: #f9fafb;
+      --pill: rgba(232,149,42,0.12);
+      --pill-fg: #E8952A;
+      --link: #2563eb;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      width: 320px;
+      background: var(--bg);
+      color: var(--fg);
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px 12px;
+      border-bottom: 1px solid var(--line);
+    }
+    .brand { display: inline-flex; align-items: center; gap: 7px; }
+    .wordmark { font-size: 15px; font-weight: 700; letter-spacing: -0.3px; }
+    .logoMark { width: 12px; height: 12px; display: inline-block; }
+    .version { font-size: 11px; color: var(--muted-2); }
+    .content { padding: 16px 20px; }
+    .rows {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .row {
+      display: grid;
+      grid-template-columns: 18px 1fr auto auto;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 10px;
+      border-top: 1px solid var(--line);
+      background: var(--bg);
+    }
+    .row:first-child { border-top: none; }
+    .row:hover { background: var(--hover); }
+    .drag {
+      font-size: 14px;
+      color: var(--muted-2);
+      cursor: grab;
+      user-select: none;
+      text-align: center;
+    }
+    .meta {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      min-width: 0;
+    }
+    .name { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .offset { font-size: 12px; color: var(--muted); white-space: nowrap; }
+    .sourcePill {
+      font-size: 10px;
+      color: var(--pill-fg);
+      background: var(--pill);
+      border: 0.5px solid rgba(232,149,42,0.3);
+      border-radius: 10px;
+      padding: 2px 6px;
+      margin-right: 8px;
+    }
+    .remove {
+      opacity: 0;
+      border: none;
+      background: transparent;
+      color: var(--muted-2);
+      cursor: pointer;
+      font-size: 14px;
+      line-height: 1;
+    }
+    .row:hover .remove { opacity: 1; }
+    .addWrap { margin-top: 8px; position: relative; }
+    #addBtn {
+      border: none;
+      background: transparent;
+      color: var(--link);
+      font-size: 13px;
+      cursor: pointer;
+      padding: 2px 0;
+    }
+    #addBtn[disabled] { color: var(--muted-2); cursor: not-allowed; }
+    .picker {
+      margin-top: 6px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--bg);
+      padding: 8px;
+    }
+    .picker[hidden] { display: none; }
+    .search {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      font-size: 12px;
+      font-family: inherit;
+    }
+    .search:focus { outline: none; border-color: var(--fg); }
+    .options {
+      margin-top: 6px;
+      max-height: 120px;
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+    }
+    .opt {
+      border: none;
+      border-top: 1px solid var(--line);
+      width: 100%;
+      text-align: left;
+      padding: 7px 8px;
+      font-size: 12px;
+      background: var(--bg);
+      cursor: pointer;
+    }
+    .opt:first-child { border-top: none; }
+    .opt:hover { background: var(--hover); }
+    .opt.region {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      padding: 6px 8px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      background: #f9fafb;
+    }
+    .opt mark {
+      background: #fff3bf;
+      color: inherit;
+      padding: 0 1px;
+      border-radius: 2px;
+    }
+    .footer {
+      padding: 12px 20px 16px;
+      text-align: center;
+      font-size: 11px;
+      color: var(--muted-2);
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <span class="brand">
+      <svg class="logoMark" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <rect width="128" height="128" rx="26" fill="#E8952A"/>
+        <circle cx="60" cy="62" r="30" fill="none" stroke="#1e2530" stroke-width="6" opacity="0.6"/>
+        <line x1="60" y1="62" x2="47" y2="47" stroke="#1e2530" stroke-width="5" stroke-linecap="round"/>
+        <line x1="60" y1="62" x2="90" y2="50" stroke="#1e2530" stroke-width="4" stroke-linecap="round"/>
+        <polygon points="90,50 79,46 83,57" fill="#1e2530"/>
+        <circle cx="60" cy="62" r="5" fill="#1e2530"/>
+      </svg>
+      <span class="wordmark">TimeHere</span>
+    </span>
+    <span class="version">v1.1</span>
+  </div>
+  <div class="content">
+    <div class="rows" id="rows"></div>
+    <div class="addWrap">
+      <button id="addBtn">+ Add timezone</button>
+      <div class="picker" id="picker" hidden>
+        <input id="search" class="search" placeholder="Search timezone">
+        <div id="options" class="options"></div>
+      </div>
+    </div>
+  </div>
+  <div class="footer">Hover a time. Know it in yours.</div>
+  <script src="timezones.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

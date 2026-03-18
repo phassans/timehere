@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { width: 1280px; height: 800px; background: #111316; display: flex; align-items: center; justify-content: center; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+  .window { background: #1a1d21; border-radius: 16px; width: 640px; overflow: hidden; box-shadow: 0 8px 40px rgba(0,0,0,0.4); }
+  .channel-header { padding: 16px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.08); display: flex; align-items: center; gap: 8px; }
+  .hash { color: rgba(255,255,255,0.5); font-size: 16px; }
+  .channel-name { color: white; font-size: 15px; font-weight: 600; }
+  .body { padding: 20px; }
+  .message { display: flex; gap: 12px; margin-bottom: 20px; }
+  .avatar { width: 38px; height: 38px; border-radius: 8px; background: #4A154B; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; color: white; flex-shrink: 0; }
+  .msg-meta { display: flex; align-items: baseline; gap: 8px; margin-bottom: 5px; }
+  .sender { font-size: 14px; font-weight: 600; color: white; }
+  .time { font-size: 11px; color: rgba(255,255,255,0.3); }
+  .msg-text { font-size: 14px; color: rgba(255,255,255,0.7); line-height: 1.9; }
+  .time-span { border-bottom: 1.5px dashed #E8952A; color: white; padding-bottom: 1px; }
+  .time-span-active { border-bottom: 1.5px solid #E8952A; color: white; padding-bottom: 1px; }
+  .tooltip { margin-left: 50px; border-radius: 10px; overflow: hidden; display: inline-block; min-width: 280px; }
+  .tt-top { background: #2a3345; padding: 8px 16px; display: flex; justify-content: space-between; align-items: center; }
+  .tt-label { display: flex; align-items: center; gap: 6px; }
+  .tt-on-page { font-size: 9px; color: rgba(255,255,255,0.35); text-transform: uppercase; letter-spacing: 0.08em; }
+  .tt-dot { font-size: 9px; color: rgba(255,255,255,0.15); }
+  .tt-tz { font-size: 10px; color: rgba(255,255,255,0.55); }
+  .tt-source-time { font-family: 'SF Mono', monospace; font-size: 12px; color: rgba(255,255,255,0.4); }
+  .tt-mid { background: #111; padding: 11px 16px; display: flex; flex-direction: column; gap: 8px; }
+  .tt-row { display: flex; justify-content: space-between; align-items: center; gap: 20px; }
+  .tt-tz-label { display: flex; align-items: center; gap: 6px; }
+  .tt-flag { font-size: 13px; }
+  .tt-abbr { font-size: 11px; color: rgba(255,255,255,0.4); }
+  .tt-time { font-family: 'SF Mono', monospace; font-size: 13px; color: white; font-weight: 500; }
+  .plus1d { font-size: 9px; background: rgba(232,149,42,0.2); color: #E8952A; padding: 1px 5px; border-radius: 3px; margin-left: 6px; }
+  .tt-bot { background: #2a3345; padding: 6px 16px; display: flex; justify-content: space-between; align-items: center; }
+  .tt-brand { display: flex; align-items: center; gap: 5px; }
+  .tt-brand-name { font-size: 9px; color: rgba(255,255,255,0.2); }
+  .tt-day { font-size: 9px; color: rgba(255,255,255,0.2); }
+</style>
+</head>
+<body>
+<div class="window">
+  <div class="channel-header">
+    <span class="hash">#</span>
+    <span class="channel-name">scheduling</span>
+  </div>
+  <div class="body">
+    <div class="message">
+      <div class="avatar">SC</div>
+      <div>
+        <div class="msg-meta">
+          <span class="sender">Sarah Chen</span>
+          <span class="time">10:42 AM</span>
+        </div>
+        <div class="msg-text">
+          Hey Alak, here's my availability for the design review (in PT):<br>
+          Monday: <span class="time-span">9–11</span>, <span class="time-span">2–4</span><br>
+          Tuesday: <span class="time-span">10–12</span>, <span class="time-span-active">1:30–3</span>
+        </div>
+      </div>
+    </div>
+    <div class="tooltip">
+      <div class="tt-top">
+        <div class="tt-label">
+          <span class="tt-on-page">on page</span>
+          <span class="tt-dot">·</span>
+          <span class="tt-tz">🇺🇸 PT</span>
+        </div>
+        <span class="tt-source-time">1:30 PM – 3:00 PM</span>
+      </div>
+      <div class="tt-mid">
+        <div class="tt-row">
+          <div class="tt-tz-label"><span class="tt-flag">🇮🇳</span><span class="tt-abbr">IST</span></div>
+          <div style="display:flex;align-items:center;">
+            <span class="tt-time">3:00 AM – 4:30 AM</span>
+            <span class="plus1d">+1d</span>
+          </div>
+        </div>
+        <div class="tt-row">
+          <div class="tt-tz-label"><span class="tt-flag">🇺🇸</span><span class="tt-abbr">ET</span></div>
+          <span class="tt-time">4:30 PM – 6:00 PM</span>
+        </div>
+        <div class="tt-row">
+          <div class="tt-tz-label"><span class="tt-flag">🇬🇧</span><span class="tt-abbr">GMT</span></div>
+          <span class="tt-time">9:30 PM – 11:00 PM</span>
+        </div>
+      </div>
+      <div class="tt-bot">
+        <div class="tt-brand">
+          <svg width="10" height="10" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg"><rect width="128" height="128" rx="26" fill="#E8952A"/><circle cx="60" cy="62" r="30" fill="none" stroke="#1e2530" stroke-width="9"/><line x1="60" y1="62" x2="47" y2="47" stroke="#1e2530" stroke-width="8" stroke-linecap="round"/><line x1="60" y1="62" x2="88" y2="51" stroke="#1e2530" stroke-width="7" stroke-linecap="round"/><polygon points="88,51 78,47 82,58" fill="#1e2530"/></svg>
+          <span class="tt-brand-name">TimeHere</span>
+        </div>
+        <span class="tt-day">Mon → Tue</span>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

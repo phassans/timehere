@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { width: 1280px; height: 800px; background: #f0f0ee; display: flex; align-items: center; justify-content: center; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+  .scene { display: flex; flex-direction: column; align-items: flex-start; }
+  .email-line { font-size: 22px; color: #333; line-height: 2; margin-bottom: 10px; }
+  .time-hover { border-bottom: 2.5px solid #E8952A; color: #111; font-weight: 600; padding-bottom: 2px; cursor: default; }
+  .tooltip { border-radius: 12px; overflow: hidden; min-width: 360px; box-shadow: 0 12px 48px rgba(0,0,0,0.2); margin-left: 20px; }
+  .tt-top { background: #1e2530; padding: 11px 20px; display: flex; justify-content: space-between; align-items: center; }
+  .tt-label { display: flex; align-items: center; gap: 8px; }
+  .on-page { font-size: 10px; color: rgba(255,255,255,0.35); text-transform: uppercase; letter-spacing: 0.08em; }
+  .dot { font-size: 10px; color: rgba(255,255,255,0.15); }
+  .src-tz { font-size: 12px; color: rgba(255,255,255,0.6); }
+  .src-time { font-family: 'SF Mono', monospace; font-size: 13px; color: rgba(255,255,255,0.45); }
+  .tt-mid { background: #111; padding: 14px 20px; display: flex; flex-direction: column; gap: 11px; }
+  .tt-row { display: flex; justify-content: space-between; align-items: center; }
+  .tz-id { display: flex; align-items: center; gap: 8px; }
+  .flag { font-size: 15px; }
+  .abbr { font-size: 13px; color: rgba(255,255,255,0.4); }
+  .converted { font-family: 'SF Mono', monospace; font-size: 15px; color: white; font-weight: 500; }
+  .plus1d { font-size: 10px; background: rgba(232,149,42,0.2); color: #E8952A; padding: 2px 7px; border-radius: 4px; margin-left: 8px; }
+  .tt-bot { background: #1e2530; padding: 8px 20px; display: flex; justify-content: space-between; align-items: center; }
+  .brand { display: flex; align-items: center; gap: 6px; }
+  .brand-name { font-size: 11px; color: rgba(255,255,255,0.25); }
+  .day-cross { font-size: 11px; color: rgba(255,255,255,0.2); }
+</style>
+</head>
+<body>
+<div class="scene">
+  <div class="email-line">
+    Friday: <span class="time-hover">12:30–2:30</span> PT
+  </div>
+  <div class="tooltip">
+    <div class="tt-top">
+      <div class="tt-label">
+        <span class="on-page">on page</span>
+        <span class="dot">·</span>
+        <span class="src-tz">🇺🇸 PT</span>
+      </div>
+      <span class="src-time">12:30 PM – 2:30 PM</span>
+    </div>
+    <div class="tt-mid">
+      <div class="tt-row">
+        <div class="tz-id"><span class="flag">🇮🇳</span><span class="abbr">IST</span></div>
+        <div style="display:flex;align-items:center;">
+          <span class="converted">2:00 AM – 4:00 AM</span>
+          <span class="plus1d">+1d</span>
+        </div>
+      </div>
+      <div class="tt-row">
+        <div class="tz-id"><span class="flag">🇺🇸</span><span class="abbr">ET</span></div>
+        <span class="converted">3:30 PM – 5:30 PM</span>
+      </div>
+      <div class="tt-row">
+        <div class="tz-id"><span class="flag">🇬🇧</span><span class="abbr">GMT</span></div>
+        <span class="converted">8:30 PM – 10:30 PM</span>
+      </div>
+    </div>
+    <div class="tt-bot">
+      <div class="brand">
+        <svg width="12" height="12" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg"><rect width="128" height="128" rx="26" fill="#E8952A"/><circle cx="60" cy="62" r="30" fill="none" stroke="#1e2530" stroke-width="9"/><line x1="60" y1="62" x2="47" y2="47" stroke="#1e2530" stroke-width="8" stroke-linecap="round"/><line x1="60" y1="62" x2="88" y2="51" stroke="#1e2530" stroke-width="7" stroke-linecap="round"/><polygon points="88,51 78,47 82,58" fill="#1e2530"/></svg>
+        <span class="brand-name">TimeHere</span>
+      </div>
+      <span class="day-cross">Fri → Sat</span>
+    </div>
+  </div>
+</div>
+</body>
+</html>

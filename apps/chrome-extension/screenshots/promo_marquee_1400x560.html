@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { width: 1400px; height: 560px; background: #1e2530; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; display: flex; align-items: center; justify-content: space-between; padding: 0 100px; overflow: hidden; position: relative; }
+
+  .grid-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0.04; }
+  .glow-left { position: absolute; left: -5%; top: 5%; width: 40%; height: 90%; background: radial-gradient(ellipse, rgba(232,149,42,0.12) 0%, transparent 70%); pointer-events: none; }
+  .glow-right { position: absolute; right: 10%; top: 20%; width: 30%; height: 60%; background: radial-gradient(ellipse, rgba(232,149,42,0.06) 0%, transparent 70%); pointer-events: none; }
+
+  .left { display: flex; flex-direction: column; gap: 20px; z-index: 2; max-width: 480px; }
+  .logo-row { display: flex; align-items: center; gap: 14px; }
+  .wordmark { font-size: 26px; font-weight: 500; color: white; letter-spacing: -0.03em; }
+  .headline { font-size: 48px; font-weight: 500; color: white; line-height: 1.1; letter-spacing: -0.03em; }
+  .headline span { color: #E8952A; }
+  .sub { font-size: 16px; color: rgba(255,255,255,0.45); line-height: 1.6; max-width: 380px; }
+  .pills { display: flex; gap: 10px; flex-wrap: wrap; }
+  .pill { font-size: 11px; padding: 5px 12px; border-radius: 20px; }
+  .pill-amber { background: rgba(232,149,42,0.12); border: 0.5px solid rgba(232,149,42,0.35); color: #E8952A; }
+  .pill-white { background: rgba(255,255,255,0.06); border: 0.5px solid rgba(255,255,255,0.12); color: rgba(255,255,255,0.6); }
+
+  .right { z-index: 2; display: flex; flex-direction: column; gap: 16px; align-items: flex-end; }
+
+  .email-card { background: rgba(255,255,255,0.06); border: 0.5px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 16px 20px; width: 380px; }
+  .email-meta { font-size: 10px; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px; }
+  .email-body { font-size: 13px; color: rgba(255,255,255,0.55); line-height: 1.9; }
+  .email-day { color: white; }
+  .time-span { border-bottom: 1.5px dashed #E8952A; color: white; padding-bottom: 1px; }
+  .time-active { border-bottom: 1.5px solid #E8952A; color: white; padding-bottom: 1px; }
+
+  .tooltip { border-radius: 10px; overflow: hidden; width: 320px; }
+  .tt-top { background: #2a3345; padding: 9px 16px; display: flex; justify-content: space-between; align-items: center; }
+  .tt-label { display: flex; align-items: center; gap: 7px; }
+  .tt-on { font-size: 9px; color: rgba(255,255,255,0.35); text-transform: uppercase; letter-spacing: 0.08em; }
+  .tt-dot { font-size: 9px; color: rgba(255,255,255,0.15); }
+  .tt-src { font-size: 11px; color: rgba(255,255,255,0.55); }
+  .tt-time { font-family: 'SF Mono', monospace; font-size: 11px; color: rgba(255,255,255,0.4); }
+  .tt-mid { background: #111; padding: 12px 16px; display: flex; flex-direction: column; gap: 9px; }
+  .tt-row { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+  .tz-id { display: flex; align-items: center; gap: 7px; }
+  .flag { font-size: 14px; }
+  .abbr { font-size: 12px; color: rgba(255,255,255,0.4); }
+  .conv { font-family: 'SF Mono', monospace; font-size: 13px; color: white; font-weight: 500; }
+  .plus1d { font-size: 9px; background: rgba(232,149,42,0.2); color: #E8952A; padding: 2px 5px; border-radius: 3px; margin-left: 6px; }
+</style>
+</head>
+<body>
+
+  <svg class="grid-bg" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <pattern id="g" width="48" height="48" patternUnits="userSpaceOnUse">
+        <path d="M 48 0 L 0 0 0 48" fill="none" stroke="white" stroke-width="0.5"/>
+      </pattern>
+    </defs>
+    <rect width="100%" height="100%" fill="url(#g)"/>
+  </svg>
+  <div class="glow-left"></div>
+  <div class="glow-right"></div>
+
+  <!-- Left -->
+  <div class="left">
+    <div class="logo-row">
+      <svg width="40" height="40" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+        <rect width="128" height="128" rx="26" fill="#E8952A"/>
+        <circle cx="60" cy="62" r="30" fill="none" stroke="#1e2530" stroke-width="6" opacity="0.6"/>
+        <line x1="60" y1="62" x2="47" y2="47" stroke="#1e2530" stroke-width="5" stroke-linecap="round"/>
+        <line x1="60" y1="62" x2="90" y2="50" stroke="#1e2530" stroke-width="4" stroke-linecap="round"/>
+        <polygon points="90,50 79,46 83,57" fill="#1e2530"/>
+        <circle cx="60" cy="62" r="5" fill="#1e2530"/>
+        <line x1="60" y1="34" x2="60" y2="40" stroke="#1e2530" stroke-width="3" stroke-linecap="round" opacity="0.5"/>
+        <line x1="86" y1="62" x2="80" y2="62" stroke="#1e2530" stroke-width="3" stroke-linecap="round" opacity="0.5"/>
+        <line x1="60" y1="90" x2="60" y2="84" stroke="#1e2530" stroke-width="3" stroke-linecap="round" opacity="0.5"/>
+        <line x1="34" y1="62" x2="40" y2="62" stroke="#1e2530" stroke-width="3" stroke-linecap="round" opacity="0.5"/>
+      </svg>
+      <span class="wordmark">TimeHere</span>
+    </div>
+
+    <div class="headline">Hover any time.<br><span>See it in yours.</span></div>
+
+    <div class="sub">No copy-paste. No tab switching. TimeHere converts timezone ranges inline — right inside Gmail, Linear, Notion and any webpage.</div>
+
+    <div class="pills">
+      <span class="pill pill-amber">Hover to convert</span>
+      <span class="pill pill-white">Multi-timezone</span>
+      <span class="pill pill-white">Any webpage</span>
+      <span class="pill pill-white">No signup needed</span>
+    </div>
+  </div>
+
+  <!-- Right -->
+  <div class="right">
+    <div class="email-card">
+      <div class="email-meta">Gmail · Sarah Chen</div>
+      <div class="email-body">
+        Hi Alak, here's my availability (in PT):<br>
+        <span class="email-day">Wednesday: </span>
+        <span class="time-span">8–11</span>,
+        <span class="time-span">1:30–3</span><br>
+        <span class="email-day">Friday: </span>
+        <span class="time-span">10–12</span>,
+        <span class="time-active">12:30–2:30</span>
+      </div>
+    </div>
+
+    <div class="tooltip">
+      <div class="tt-top">
+        <div class="tt-label">
+          <span class="tt-on">on page</span>
+          <span class="tt-dot">·</span>
+          <span class="tt-src">🇺🇸 PT</span>
+        </div>
+        <span class="tt-time">12:30 PM – 2:30 PM</span>
+      </div>
+      <div class="tt-mid">
+        <div class="tt-row">
+          <div class="tz-id"><span class="flag">🇮🇳</span><span class="abbr">IST</span></div>
+          <div style="display:flex;align-items:center;">
+            <span class="conv">2:00 AM – 4:00 AM</span>
+            <span class="plus1d">+1d</span>
+          </div>
+        </div>
+        <div class="tt-row">
+          <div class="tz-id"><span class="flag">🇺🇸</span><span class="abbr">ET</span></div>
+          <span class="conv">3:30 PM – 5:30 PM</span>
+        </div>
+        <div class="tt-row">
+          <div class="tz-id"><span class="flag">🇬🇧</span><span class="abbr">GMT</span></div>
+          <span class="conv">8:30 PM – 10:30 PM</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

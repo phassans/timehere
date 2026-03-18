@@ -1,0 +1,9 @@
+.timehere-span {
+  border-bottom: 1.5px dashed #3b82f6 !important;
+  cursor: help !important;
+  transition: opacity 0.15s ease, border-bottom-style 0.15s ease !important;
+}
+.timehere-span:hover {
+  border-bottom-style: solid !important;
+  cursor: crosshair !important;
+}

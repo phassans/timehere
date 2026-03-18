@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { width: 1280px; height: 800px; background: #f0f0ee; display: flex; align-items: center; justify-content: center; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; gap: 32px; }
+  .panel { background: white; border-radius: 16px; width: 520px; padding: 32px 36px; position: relative; min-height: 340px; box-shadow: 0 4px 24px rgba(0,0,0,0.08); }
+  .label { font-size: 11px; color: #aaa; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 20px; }
+  .from { font-size: 13px; color: #888; margin-bottom: 16px; }
+  .avail { font-size: 16px; color: #444; line-height: 2.4; }
+  .day { color: #888; }
+  .time-orig { border-bottom: 1.5px dashed #E8952A; color: #111; padding-bottom: 1px; }
+  .time-conv { color: #E8952A; font-weight: 600; }
+  .pill { position: absolute; bottom: 20px; right: 20px; border-radius: 20px; padding: 7px 14px; display: inline-flex; align-items: center; gap: 7px; }
+  .pill-dark { background: #1e2530; }
+  .pill-amber { background: #E8952A; }
+  .pill-text-white { font-size: 12px; color: white; font-weight: 500; }
+  .pill-text-dark { font-size: 12px; color: #1e2530; font-weight: 600; }
+  .arrow { font-size: 11px; color: #bbb; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #f0f0ee; padding: 8px; border-radius: 50%; }
+</style>
+</head>
+<body>
+  <div class="panel">
+    <div class="label">Original · PT</div>
+    <div class="from">Hi Alak, here's my availability (in PT):</div>
+    <div class="avail">
+      <span class="day">Wednesday: </span><span class="time-orig">8–11</span>, <span class="time-orig">1:30–3</span><br>
+      <span class="day">Thursday: </span><span class="time-orig">10–1</span>, <span class="time-orig">3–5</span><br>
+      <span class="day">Friday: </span><span class="time-orig">9–11</span>, <span class="time-orig">12:30–2:30</span>
+    </div>
+    <div class="pill pill-dark">
+      <svg width="12" height="12" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg"><rect width="128" height="128" rx="26" fill="#E8952A"/><circle cx="60" cy="62" r="30" fill="none" stroke="#1e2530" stroke-width="9"/><line x1="60" y1="62" x2="47" y2="47" stroke="#1e2530" stroke-width="8" stroke-linecap="round"/><line x1="60" y1="62" x2="88" y2="51" stroke="#1e2530" stroke-width="7" stroke-linecap="round"/><polygon points="88,51 78,47 82,58" fill="#1e2530"/></svg>
+      <span class="pill-text-white">PT → IST</span>
+    </div>
+  </div>
+
+  <div style="font-size:28px;color:#bbb;">→</div>
+
+  <div class="panel">
+    <div class="label">Converted · IST</div>
+    <div class="from">Hi Alak, here's my availability (in PT):</div>
+    <div class="avail">
+      <span class="day">Wednesday: </span><span class="time-conv">9:30–11:30 PM</span>, <span class="time-conv">3–4:30 AM</span><br>
+      <span class="day">Thursday: </span><span class="time-conv">11:30 PM–2 AM</span>, <span class="time-conv">4:30–6:30 AM</span><br>
+      <span class="day">Friday: </span><span class="time-conv">10:30 PM–12:30 AM</span>, <span class="time-conv">2–4 AM</span>
+    </div>
+    <div class="pill pill-amber">
+      <svg width="12" height="12" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg"><rect width="128" height="128" rx="26" fill="#1e2530"/><circle cx="60" cy="62" r="30" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="9"/><line x1="60" y1="62" x2="47" y2="47" stroke="white" stroke-width="8" stroke-linecap="round"/><line x1="60" y1="62" x2="88" y2="51" stroke="#E8952A" stroke-width="7" stroke-linecap="round"/><polygon points="88,51 78,47 82,58" fill="#E8952A"/></svg>
+      <span class="pill-text-dark">Showing IST</span>
+    </div>
+  </div>
+</body>
+</html>

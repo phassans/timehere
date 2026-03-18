@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+
+# macOS / Editor noise
+.DS_Store
+Thumbs.db
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Local environment files
+.env
+.env.*
+!.env.example
+
+# Local overrides
+*.local
+*.zip
+
+# Claude
+.claude/
+*.claude.md
+!CLAUDE.md
+
+# Cursor
+*.cursor.md
+!CURSOR.md

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { width: 1280px; height: 800px; background: #f0f0ee; display: flex; align-items: center; justify-content: center; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+  .popup { background: white; border-radius: 16px; width: 340px; overflow: hidden; box-shadow: 0 8px 40px rgba(0,0,0,0.12); }
+  .header { padding: 20px 22px; border-bottom: 0.5px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+  .logo { display: flex; align-items: center; gap: 10px; }
+  .wordmark { font-size: 17px; font-weight: 600; color: #111; letter-spacing: -0.02em; }
+  .version { font-size: 12px; color: #bbb; }
+  .body { padding: 16px 20px; }
+  .tz-list { background: #f7f7f5; border-radius: 10px; overflow: hidden; margin-bottom: 14px; }
+  .tz-row { display: flex; align-items: center; gap: 10px; padding: 11px 14px; }
+  .tz-divider { height: 0.5px; background: #eee; margin: 0 14px; }
+  .drag { color: #ccc; font-size: 13px; }
+  .flag { font-size: 14px; }
+  .tz-name { font-size: 14px; color: #111; flex: 1; }
+  .source-badge { font-size: 10px; background: rgba(232,149,42,0.12); color: #E8952A; border: 0.5px solid rgba(232,149,42,0.3); padding: 2px 9px; border-radius: 10px; }
+  .offset { font-size: 12px; color: #bbb; margin-left: 6px; }
+  .add-tz { font-size: 13px; color: #E8952A; margin-bottom: 20px; cursor: pointer; }
+  .footer { text-align: center; padding-bottom: 18px; }
+  .footer span { font-size: 12px; color: #bbb; }
+</style>
+</head>
+<body>
+<div class="popup">
+  <div class="header">
+    <div class="logo">
+      <svg width="26" height="26" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+        <rect width="128" height="128" rx="26" fill="#E8952A"/>
+        <circle cx="60" cy="62" r="30" fill="none" stroke="#1e2530" stroke-width="6" opacity="0.6"/>
+        <line x1="60" y1="62" x2="47" y2="47" stroke="#1e2530" stroke-width="5" stroke-linecap="round"/>
+        <line x1="60" y1="62" x2="90" y2="50" stroke="#1e2530" stroke-width="4" stroke-linecap="round"/>
+        <polygon points="90,50 79,46 83,57" fill="#1e2530"/>
+        <circle cx="60" cy="62" r="5" fill="#1e2530"/>
+        <line x1="60" y1="34" x2="60" y2="40" stroke="#1e2530" stroke-width="3" stroke-linecap="round" opacity="0.5"/>
+        <line x1="86" y1="62" x2="80" y2="62" stroke="#1e2530" stroke-width="3" stroke-linecap="round" opacity="0.5"/>
+        <line x1="60" y1="90" x2="60" y2="84" stroke="#1e2530" stroke-width="3" stroke-linecap="round" opacity="0.5"/>
+        <line x1="34" y1="62" x2="40" y2="62" stroke="#1e2530" stroke-width="3" stroke-linecap="round" opacity="0.5"/>
+      </svg>
+      <span class="wordmark">TimeHere</span>
+    </div>
+    <span class="version">v1.1</span>
+  </div>
+  <div class="body">
+    <div class="tz-list">
+      <div class="tz-row">
+        <span class="drag">⠿</span>
+        <span class="flag">🇺🇸</span>
+        <span class="tz-name">Pacific</span>
+        <span class="source-badge">source</span>
+        <span class="offset">UTC−7</span>
+      </div>
+      <div class="tz-divider"></div>
+      <div class="tz-row">
+        <span class="drag">⠿</span>
+        <span class="flag">🇮🇳</span>
+        <span class="tz-name">India</span>
+        <span class="offset">UTC+5:30</span>
+      </div>
+      <div class="tz-divider"></div>
+      <div class="tz-row">
+        <span class="drag">⠿</span>
+        <span class="flag">🇺🇸</span>
+        <span class="tz-name">Eastern</span>
+        <span class="offset">UTC−4</span>
+      </div>
+      <div class="tz-divider"></div>
+      <div class="tz-row">
+        <span class="drag">⠿</span>
+        <span class="flag">🇬🇧</span>
+        <span class="tz-name">London</span>
+        <span class="offset">UTC+0</span>
+      </div>
+    </div>
+    <div class="add-tz">+ Add timezone</div>
+    <div class="footer"><span>Hover a time. Know it in yours.</span></div>
+  </div>
+</div>
+</body>
+</html>
