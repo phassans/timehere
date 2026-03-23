@@ -350,7 +350,6 @@
   }
   function scan(root) {
     if (!root || root.nodeType !== 1) return;
-    try { root.normalize(); } catch (e) {}
     const walk = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null, false);
     const toWrap = [];
     let n;
@@ -358,6 +357,7 @@
       const txt = n.textContent || '';
       if (!/\d/.test(txt) || txt.trim().length < 2) continue;
       if (isSkipTag(n) || n.parentNode?.classList?.contains('timehere-span')) continue;
+      TIME_RX.lastIndex = 0;
       if (TIME_RX.test(txt)) toWrap.push(n);
     }
     toWrap.forEach(node => wrapNode(node));
