@@ -22,7 +22,7 @@
   };
   const DAY_INDEX = { sun: 0, mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6 };
   const DAY_TOKEN_RX = /\b(Mon(?:day)?|Tue(?:sday)?|Wed(?:nesday)?|Thu(?:rsday)?|Fri(?:day)?|Sat(?:urday)?|Sun(?:day)?)\.?\b/gi;
-  const TIME_RX = /(?:(?:Mon(?:day)?|Tue(?:sday)?|Wed(?:nesday)?|Thu(?:rsday)?|Fri(?:day)?|Sat(?:urday)?|Sun(?:day)?)\s*:\s*)?(\d{1,2})(?::(\d{2}))?\s*(am|pm)?\s*[\x2D\u2013\u2014\u2212]\s*(\d{1,2})(?::(\d{2}))?\s*(am|pm)?|(\d{1,2}):(\d{2})\s*(am|pm)?|(\d{1,2})\s*(am|pm)/gi;
+  const TIME_RX = /(?:(?:Mon(?:day)?|Tue(?:sday)?|Wed(?:nesday)?|Thu(?:rsday)?|Fri(?:day)?|Sat(?:urday)?|Sun(?:day)?)\s*:\s*)?(\d{1,2})(?::(\d{2}))?\s*(a\.?m\.?|p\.?m\.?|a|p)?\s*[\x2D\u2013\u2014\u2212]\s*(\d{1,2})(?::(\d{2}))?\s*(a\.?m\.?|p\.?m\.?|a|p)?|(\d{1,2}):(\d{2})\s*(a\.?m\.?|p\.?m\.?|a|p)?|(\d{1,2})\s*(a\.?m\.?|p\.?m\.?|a|p)/gi;
   const TZ_KEYS = Object.keys(TZ_ABBREVS).sort((a, b) => b.length - a.length);
   const TZ_RX = new RegExp(
     '\\\\((?:in\\\\s+)?(' + TZ_KEYS.join('|') + ')\\\\)|times?\\\\s+are\\\\s+(' + TZ_KEYS.join('|') + ')|\\\\((' + TZ_KEYS.join('|') + ')\\\\)',
@@ -62,7 +62,7 @@
 
   function parseTime(match, lastEndHour24) {
     const g = (i) => (match[i] !== undefined && match[i] !== '') ? parseInt(match[i], 10) : 0;
-    const ap = (i) => (match[i] || '').toLowerCase();
+    const ap = (i) => { const v = (match[i] || '').toLowerCase().replace(/\./g, ''); return v === 'a' ? 'am' : v === 'p' ? 'pm' : v; };
     let h1, m1, h2, m2, isRange = false;
     if (match[4] !== undefined && match[4] !== '') {
       isRange = true;
@@ -293,13 +293,15 @@
 
   function isSkipTag(node) {
     let p = node?.parentNode;
+    let inGmailBody = false;
     while (p && p.nodeType === 1) {
       const t = p.nodeName;
       if (t === 'INPUT' || t === 'TEXTAREA' || t === 'CODE' || t === 'PRE' || t === 'SCRIPT' || t === 'STYLE' || t === 'TIME' || t === 'TIMEHERE-ROOT') return true;
-      if (location.hostname === 'mail.google.com' && (p.classList?.contains('g3') || p.classList?.contains('xW'))) return true;
+      if (location.hostname === 'mail.google.com' && (p.classList?.contains('a3s') || (p.classList?.contains('ii') && p.classList?.contains('gt')))) inGmailBody = true;
       if (p.getAttribute?.('contenteditable') === 'true' || p.getAttribute?.('role') === 'textbox' || p.getAttribute?.('aria-hidden') === 'true') return true;
       p = p.parentNode;
     }
+    if (location.hostname === 'mail.google.com' && !inGmailBody) return true;
     return false;
   }
   function makeSpan(data) {
@@ -320,7 +322,9 @@
     let m;
     while ((m = TIME_RX.exec(text)) !== null) {
       const raw = m[0];
-      if (isEmbeddedNumberToken(text, m.index, m.index + raw.length)) continue;
+      if (isEmbeddedNumberToken(text, m.index, m.index + raw.length)) { TIME_RX.lastIndex = m.index + 1; continue; }
+      const before = text.slice(Math.max(0, m.index - 30), m.index);
+      if (/\b\d{4}\s+at\s*$/i.test(before)) continue;
       const matched = matchedTargetLabel(text, m.index + raw.length, labels);
       if (matched) {
         frag.appendChild(document.createTextNode(text.slice(lastIdx, m.index)));
@@ -332,7 +336,7 @@
       }
       const p = parseTime(m, lastEnd);
       lastEnd = p.h2;
-      if (p.h1 > 23 || p.h2 > 23) continue;
+      if (p.h1 > 23 || p.h2 > 23) { TIME_RX.lastIndex = m.index + 1; continue; }
       const localSrcTz = detectLocalSourceTz(textNode, text, m.index, raw);
       if (!localSrcTz) continue;
       const dayIdx = dayIndexFromContext(text, m.index, raw);
