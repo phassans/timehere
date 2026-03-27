@@ -29,7 +29,6 @@
     'gi'
   );
   let timezones = ['America/Los_Angeles', 'Asia/Kolkata'];
-  let flipped = false;
   const IS_LINKEDIN = location.hostname.includes('linkedin.com');
   const highlightEntries = [];   // LinkedIn: { range, data } for each matched time
   let activeHighlightEntry = null;
@@ -197,7 +196,6 @@
   let host = null;
   let shadow = null;
   let tip = null;
-  let btn = null;
   const TOGGLE_CSS = `
     :host { all: initial !important; position: fixed !important; top:0 !important; left:0 !important; width:0 !important; height:0 !important; pointer-events:none !important; z-index:999999 !important; }
     * { box-sizing: border-box; }
@@ -211,7 +209,6 @@
     .tf-time { font-family:${MONO}; letter-spacing:.2px; color:#fff; margin-left:auto; text-align:right; }
     .tf-time.muted { color:#9ca3af; }
     .tf-badge { margin-left:6px; padding:1px 6px; border-radius:999px; font:600 10px/1.2 ${FONT}; background:rgba(232,149,42,0.2); color:#E8952A; }
-    .tf-btn { position:fixed; right:24px; bottom:24px; padding:7px 14px; border:none; border-radius:20px; background:#1e2530; color:#fff; font:500 12px/1 ${FONT}; box-shadow:0 2px 8px rgba(0,0,0,.15); cursor:pointer; pointer-events:auto; transition:opacity .15s; user-select:none; }
   `;
   function ensureTogglePill() {
     if (host || !document.body) return;
@@ -225,13 +222,6 @@
     tip = document.createElement('div');
     tip.className = 'tf-tip';
     shadow.appendChild(tip);
-    btn = document.createElement('button');
-    btn.id = 'timehere-toggle-btn';
-    btn.className = 'tf-btn';
-    btn.title = 'Click to toggle timezone view';
-    btn.addEventListener('click', flipPage);
-    shadow.appendChild(btn);
-    updateBtnLabel();
   }
   function removeTogglePill() {
     if (!host) return;
@@ -239,7 +229,6 @@
     host = null;
     shadow = null;
     tip = null;
-    btn = null;
   }
   function syncTogglePill() {
     if (document.querySelector('.timehere-span') || highlightEntries.length) ensureTogglePill();
@@ -378,59 +367,10 @@
     while ((el = it.nextNode())) if (el.shadowRoot) scan(el.shadowRoot);
   }
 
-  function inlineText(d, dst) {
-    const sd = d.sd !== undefined ? +d.sd : null;
-    const r = convertOne(+d.h1, +d.m1, +d.h2, +d.m2, d.sz, dst, sd);
-    const raw = d.raw || '';
-    const dayPrefix = raw.match(/^\s*(?:Mon(?:day)?|Tue(?:sday)?|Wed(?:nesday)?|Thu(?:rsday)?|Fri(?:day)?|Sat(?:urday)?|Sun(?:day)?)\s*:\s*/i);
-    return (dayPrefix ? dayPrefix[0] : '') + r.text;
-  }
-  function toggleLabel() {
-    const src = tzAbbr(sourceTz());
-    const dst = tzAbbr(firstTargetTz());
-    return flipped ? ('Showing ' + dst + ' \u00b7 restore') : (src + ' \u2192 ' + dst);
-  }
-  function renderFlip() {
-    const dst = firstTargetTz();
-    document.querySelectorAll('.timehere-span').forEach(span => {
-      if (!span.dataset.h1) return;
-      if (flipped) { span._orig = span.dataset.raw; span.textContent = inlineText(span.dataset, dst); }
-      else span.textContent = span._orig || span.dataset.raw;
-    });
-  }
-  function updateBtnLabel() {
-    if (!btn) return;
-    btn.innerHTML = toggleLabel();
-  }
-  function flipPage() {
-    flipped = !flipped;
-    try { sessionStorage.setItem('timehere-flipped', flipped ? '1' : ''); } catch (e) {}
-    const spans = document.querySelectorAll('.timehere-span');
-    spans.forEach(s => { s.style.opacity = '0'; });
-    if (btn) btn.style.opacity = '0';
-    setTimeout(() => {
-      renderFlip();
-      spans.forEach(s => { s.style.opacity = ''; });
-      updateBtnLabel();
-      if (btn) btn.style.opacity = '';
-    }, 150);
-  }
-
   function applyStorage(o) {
     timezones = normalizeTzs(o.timezones || [o.sourceTz, o.targetTz]);
-    updateBtnLabel();
-    if (flipped) renderFlip();
   }
-  chrome.storage.sync.get({ timezones: null, sourceTz: 'America/Los_Angeles', targetTz: 'Asia/Kolkata' }, (o) => {
-    applyStorage(o);
-    try {
-      if (sessionStorage.getItem('timehere-flipped') === '1') {
-        flipped = true;
-        renderFlip();
-        updateBtnLabel();
-      }
-    } catch (e) {}
-  });
+  chrome.storage.sync.get({ timezones: null, sourceTz: 'America/Los_Angeles', targetTz: 'Asia/Kolkata' }, applyStorage);
   chrome.storage.onChanged.addListener((changes, area) => {
     if (area !== 'sync') return;
     if (changes.timezones) timezones = normalizeTzs(changes.timezones.newValue);
@@ -439,8 +379,6 @@
       const tgt = changes.targetTz?.newValue || firstTargetTz();
       timezones = normalizeTzs([src, tgt]);
     }
-    updateBtnLabel();
-    if (flipped) renderFlip();
   });
 
   const scanQueue = new Set();
@@ -450,7 +388,6 @@
     const nodes = Array.from(scanQueue);
     scanQueue.clear();
     nodes.forEach(scan);
-    if (flipped) renderFlip();
     syncTogglePill();
   }
   function enqueue(node) {
@@ -603,7 +540,6 @@
   } else {
     scan(document.body);
   }
-  if (flipped) renderFlip();
   syncTogglePill();
   if (!IS_LINKEDIN) new MutationObserver(muts => {
     muts.forEach(mu => {
