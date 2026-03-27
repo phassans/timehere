@@ -30,6 +30,9 @@
   );
   let timezones = ['America/Los_Angeles', 'Asia/Kolkata'];
   let flipped = false;
+  const IS_LINKEDIN = location.hostname.includes('linkedin.com');
+  const highlightEntries = [];   // LinkedIn: { range, data } for each matched time
+  let activeHighlightEntry = null;
 
   function normalizeTzs(list) {
     const src = Array.isArray(list) ? list : [];
@@ -239,7 +242,7 @@
     btn = null;
   }
   function syncTogglePill() {
-    if (document.querySelector('.timehere-span')) ensureTogglePill();
+    if (document.querySelector('.timehere-span') || highlightEntries.length) ensureTogglePill();
     else removeTogglePill();
   }
 
@@ -291,14 +294,19 @@
     if (tip) tip.classList.remove('on');
   }
 
+  function isInsideEditable(node) {
+    const el = node?.nodeType === 3 ? node.parentElement : node;
+    return !!(el && (el.isContentEditable || el.closest?.('[role="textbox"]')));
+  }
   function isSkipTag(node) {
+    if (isInsideEditable(node)) return true;
     let p = node?.parentNode;
     let inGmailBody = false;
     while (p && p.nodeType === 1) {
       const t = p.nodeName;
       if (t === 'INPUT' || t === 'TEXTAREA' || t === 'CODE' || t === 'PRE' || t === 'SCRIPT' || t === 'STYLE' || t === 'TIME' || t === 'TIMEHERE-ROOT') return true;
       if (location.hostname === 'mail.google.com' && (p.classList?.contains('a3s') || (p.classList?.contains('ii') && p.classList?.contains('gt')))) inGmailBody = true;
-      if (p.getAttribute?.('contenteditable') === 'true' || p.getAttribute?.('role') === 'textbox' || p.getAttribute?.('aria-hidden') === 'true') return true;
+      if (p.getAttribute?.('aria-hidden') === 'true') return true;
       p = p.parentNode;
     }
     if (location.hostname === 'mail.google.com' && !inGmailBody) return true;
@@ -448,6 +456,8 @@
   function enqueue(node) {
     const r = (node && node.nodeType === 3) ? node.parentNode : node;
     if (!r || r.nodeType !== 1) return;
+    if (isInsideEditable(r)) return;
+    if (r.closest?.('timehere-root, .timehere-span')) return;
     scanQueue.add(r);
     if (scanScheduled) return;
     scanScheduled = true;
@@ -455,10 +465,147 @@
     else setTimeout(flush, 60);
   }
 
-  scan(document.body);
+  /* ── LinkedIn: CSS Custom Highlights API (zero DOM mutation) ──────── */
+  function linkedinScan(root) {
+    if (!root || root.nodeType !== 1 || !CSS.highlights) return;
+    const walk = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null, false);
+    let n;
+    while ((n = walk.nextNode())) {
+      const txt = n.textContent || '';
+      if (!/\d/.test(txt) || txt.trim().length < 2) continue;
+      if (isSkipTag(n) || isInsideEditable(n)) continue;
+      TIME_RX.lastIndex = 0;
+      if (!TIME_RX.test(txt)) continue;
+      TIME_RX.lastIndex = 0;
+      const labels = targetTzs().map(tzAbbr);
+      let m, lastEnd;
+      while ((m = TIME_RX.exec(txt)) !== null) {
+        const raw = m[0];
+        if (isEmbeddedNumberToken(txt, m.index, m.index + raw.length)) { TIME_RX.lastIndex = m.index + 1; continue; }
+        const before = txt.slice(Math.max(0, m.index - 30), m.index);
+        if (/\b\d{4}\s+at\s*$/i.test(before)) continue;
+        const matched = matchedTargetLabel(txt, m.index + raw.length, labels);
+        let data;
+        if (matched) {
+          data = { at: '1', tl: matched };
+        } else {
+          const p = parseTime(m, lastEnd);
+          lastEnd = p.h2;
+          if (p.h1 > 23 || p.h2 > 23) { TIME_RX.lastIndex = m.index + 1; continue; }
+          const localSrcTz = detectLocalSourceTz(n, txt, m.index, raw);
+          if (!localSrcTz) continue;
+          const dayIdx = dayIndexFromContext(txt, m.index, raw);
+          data = { h1: p.h1, m1: p.m1, h2: p.h2, m2: p.m2, sz: localSrcTz, raw };
+          if (dayIdx !== null) data.sd = dayIdx;
+        }
+        try {
+          const range = new Range();
+          range.setStart(n, m.index);
+          range.setEnd(n, m.index + raw.length);
+          highlightEntries.push({ range, data });
+        } catch (e) { /* range may fail if offsets are invalid */ }
+      }
+    }
+  }
+
+  function linkedinApplyHighlights() {
+    if (!CSS.highlights || !highlightEntries.length) return;
+    const highlight = new Highlight(...highlightEntries.map(e => e.range));
+    CSS.highlights.set('timehere-times', highlight);
+    ensureTogglePill();
+  }
+
+  function linkedinHoverHandler(e) {
+    if (!tip || !highlightEntries.length) return;
+    const caretRange = document.caretRangeFromPoint(e.clientX, e.clientY);
+    if (!caretRange) { linkedinHideTooltip(); return; }
+    const node = caretRange.startContainer;
+    const offset = caretRange.startOffset;
+    for (let i = 0; i < highlightEntries.length; i++) {
+      const entry = highlightEntries[i];
+      try {
+        if (entry.range.isPointInRange(node, offset)) {
+          if (activeHighlightEntry === entry) return; // already showing
+          activeHighlightEntry = entry;
+          // Build tooltip from data (same format as span.dataset)
+          const d = entry.data;
+          if (d.at === '1') {
+            tip.innerHTML = '<div class="tf-row tf-source">Already in ' + (d.tl || 'target') + '</div>';
+          } else {
+            tip.innerHTML = tooltipHtmlFromData(d);
+          }
+          // Position near the highlighted text
+          const rect = entry.range.getBoundingClientRect();
+          const gap = 8;
+          const below = rect.top < tip.offsetHeight + gap + 10;
+          tip.className = 'tf-tip';
+          tip.style.top = (below ? (rect.bottom + gap) : (rect.top - tip.offsetHeight - gap)) + 'px';
+          let left = rect.left + rect.width / 2 - tip.offsetWidth / 2;
+          left = Math.max(4, Math.min(left, window.innerWidth - tip.offsetWidth - 4));
+          tip.style.left = left + 'px';
+          tip.classList.add('on');
+          return;
+        }
+      } catch (e) { /* range may have been invalidated */ }
+    }
+    linkedinHideTooltip();
+  }
+
+  function linkedinHideTooltip() {
+    if (activeHighlightEntry) { activeHighlightEntry = null; if (tip) tip.classList.remove('on'); }
+  }
+
+  function tooltipHtmlFromData(d) {
+    const sd = d.sd !== undefined ? +d.sd : null;
+    const src = convertOne(+d.h1, +d.m1, +d.h2, +d.m2, d.sz, d.sz, sd);
+    const srcAbbr = tzAbbr(d.sz);
+    const targets = targetTzs();
+    let html = '<div class="tf-top"><span class="tf-left">on page \u00b7 ' + srcAbbr + '</span><span class="tf-time muted">' + src.text + '</span></div>';
+    html += '<div class="tf-mid">';
+    targets.forEach(tz => {
+      const r = convertOne(+d.h1, +d.m1, +d.h2, +d.m2, d.sz, tz, sd);
+      const meta = TZ_BY_ID[tz] || null;
+      const flag = meta?.flag || '';
+      const abbr = tzAbbr(tz);
+      html += '<div class="tf-row"><span class="tf-left">' + flag + ' ' + abbr + '</span><span class="tf-time">' + r.text + (r.crosses ? '<span class="tf-badge">+1d</span>' : '') + '</span></div>';
+    });
+    html += '</div>';
+    return html;
+  }
+
+  function linkedinFullRescan() {
+    highlightEntries.length = 0;
+    activeHighlightEntry = null;
+    if (CSS.highlights) CSS.highlights.delete('timehere-times');
+    linkedinScan(document.body);
+    linkedinApplyHighlights();
+    syncTogglePill();
+  }
+
+  /* ── Main initialization ─────────────────────────────────────────── */
+  if (IS_LINKEDIN) {
+    linkedinScan(document.body);
+    linkedinApplyHighlights();
+    // Hover detection via caretRangeFromPoint (no DOM needed)
+    let hoverThrottle = 0;
+    document.addEventListener('mousemove', (e) => {
+      if (Date.now() - hoverThrottle < 50) return;
+      hoverThrottle = Date.now();
+      linkedinHoverHandler(e);
+    }, { passive: true });
+    // Re-scan on dynamic content (safe: linkedinScan is read-only)
+    let rescanScheduled = false;
+    new MutationObserver(() => {
+      if (rescanScheduled) return;
+      rescanScheduled = true;
+      setTimeout(() => { rescanScheduled = false; linkedinFullRescan(); }, 800);
+    }).observe(document.body, { childList: true, subtree: true });
+  } else {
+    scan(document.body);
+  }
   if (flipped) renderFlip();
   syncTogglePill();
-  new MutationObserver(muts => {
+  if (!IS_LINKEDIN) new MutationObserver(muts => {
     muts.forEach(mu => {
       if (mu.type === 'characterData') { enqueue(mu.target); return; }
       enqueue(mu.target);
