@@ -145,6 +145,55 @@
       padding: 0 1px;
       border-radius: 2px;
     }
+    /* Quick Convert */
+    .qc { padding: 0 20px 4px; }
+    .qc-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--muted-2);
+      margin-bottom: 6px;
+    }
+    .qc-input {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      font-size: 13px;
+      font-family: inherit;
+      color: var(--fg);
+      background: var(--bg);
+    }
+    .qc-input:focus { outline: none; border-color: var(--pill-fg); }
+    .qc-input::placeholder { color: var(--muted-2); }
+    .qc-result {
+      margin-top: 6px;
+      font-size: 12px;
+      color: var(--fg);
+      min-height: 18px;
+    }
+    .qc-result .qc-src {
+      color: var(--muted);
+      margin-bottom: 2px;
+    }
+    .qc-result .qc-dst {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      padding: 1px 0;
+    }
+    .qc-result .qc-flag { font-size: 12px; }
+    .qc-result .qc-abbr { color: var(--muted); font-size: 11px; min-width: 32px; }
+    .qc-result .qc-time { font-weight: 500; }
+    .qc-result .qc-badge {
+      font-size: 9px;
+      color: var(--pill-fg);
+      background: var(--pill);
+      border-radius: 6px;
+      padding: 1px 4px;
+      margin-left: 2px;
+    }
+    .qc-hint { color: var(--muted-2); font-style: italic; }
     .footer {
       padding: 12px 20px 16px;
       text-align: center;
@@ -166,7 +215,7 @@
       </svg>
       <span class="wordmark">TimeHere</span>
     </span>
-    <span class="version">v1.1.3</span>
+    <span class="version">v1.3.0</span>
   </div>
   <div class="content">
     <div class="rows" id="rows"></div>
@@ -177,6 +226,11 @@
         <div id="options" class="options"></div>
       </div>
     </div>
+  </div>
+  <div class="qc">
+    <div class="qc-label">Quick Convert</div>
+    <input id="qcInput" class="qc-input" placeholder="e.g. 3:30 PM, 14:00–16:00" autocomplete="off" spellcheck="false">
+    <div id="qcResult" class="qc-result"></div>
   </div>
   <div class="footer">Hover a time. Know it in yours.</div>
   <script src="timezones.js"></script>

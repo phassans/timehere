@@ -186,6 +186,7 @@ function rerenderAndSave() {
   list = normalizeList(list);
   renderRows();
   renderPreview();
+  qcConvert();
   save();
 }
 
@@ -217,6 +218,67 @@ searchEl.onkeydown = (e) => {
     pickerEl.hidden = true;
   }
 };
+
+/* ── Quick Convert ─────────────────────────────────────── */
+const QC_RX = /(?:(?:Mon(?:day)?|Tue(?:sday)?|Wed(?:nesday)?|Thu(?:rsday)?|Fri(?:day)?|Sat(?:urday)?|Sun(?:day)?)\s*:?\s*)?(\d{1,2})(?::(\d{2}))?\s*(a\.?m\.?|p\.?m\.?|a|p)?\s*[\x2D\u2013\u2014\u2212]\s*(\d{1,2})(?::(\d{2}))?\s*(a\.?m\.?|p\.?m\.?|a|p)?|(\d{1,2}):(\d{2})\s*(a\.?m\.?|p\.?m\.?|a|p)?|(\d{1,2})\s*(a\.?m\.?|p\.?m\.?|a|p)?/i;
+const qcInput = document.getElementById('qcInput');
+const qcResult = document.getElementById('qcResult');
+
+function qcParseTime(match) {
+  const g = (i) => (match[i] !== undefined && match[i] !== '') ? parseInt(match[i], 10) : 0;
+  const ap = (i) => { const v = (match[i] || '').toLowerCase().replace(/\./g, ''); return v === 'a' ? 'am' : v === 'p' ? 'pm' : v; };
+  let h1, m1, h2, m2, isRange = false;
+  if (match[4] !== undefined && match[4] !== '') {
+    isRange = true;
+    h1 = g(1); m1 = g(2); const a1 = ap(3); h2 = g(4); m2 = g(5); const a2 = ap(6);
+    if (a1 === 'pm' && h1 < 12) h1 += 12; if (a1 === 'am' && h1 === 12) h1 = 0;
+    if (a2 === 'pm' && h2 < 12) h2 += 12; if (a2 === 'am' && h2 === 12) h2 = 0;
+    if (a2 && !a1 && h1 >= 1 && h1 <= 5) h1 += 12;
+    if (a1 && !a2 && h2 >= 1 && h2 <= 5) h2 += 12;
+    if (!a1 && !a2) {
+      if (h2 < h1) h2 += 12;
+      else if (h1 >= 1 && h1 <= 5 && h2 >= 1 && h2 <= 5) { h1 += 12; h2 += 12; }
+    }
+  } else {
+    let a = '';
+    if (match[7] !== undefined && match[7] !== '') { h1 = g(7); m1 = g(8); a = ap(9); }
+    else { h1 = g(10); m1 = 0; a = ap(11); }
+    if (a === 'pm' && h1 < 12) h1 += 12; if (a === 'am' && h1 === 12) h1 = 0;
+    const hs = (match[7] || match[10] || '');
+    const is24 = (h1 >= 13 && h1 <= 23) || (hs && hs.length >= 2 && hs.startsWith('0'));
+    if (!a && h1 >= 1 && h1 <= 9 && !is24) h1 += 12;
+    h2 = h1; m2 = m1;
+  }
+  return { h1, m1, h2, m2, isRange };
+}
+
+function qcConvert() {
+  const raw = qcInput.value.trim();
+  if (!raw) { qcResult.innerHTML = ''; return; }
+  const m = raw.match(QC_RX);
+  if (!m) { qcResult.innerHTML = '<span class="qc-hint">Try something like 3:30 PM or 9-11am</span>'; return; }
+  const { h1, m1, h2, m2, isRange } = qcParseTime(m);
+  if (h1 > 23 || h2 > 23 || m1 > 59 || m2 > 59) { qcResult.innerHTML = '<span class="qc-hint">Invalid time</span>'; return; }
+  const srcId = list[0];
+  const src = byId[srcId];
+  const start = toUtcAtToday(h1, m1, srcId);
+  let end = toUtcAtToday(h2, m2, srcId);
+  if (isRange && end <= start) end.setDate(end.getDate() + 1);
+  const tf12 = (tz) => new Intl.DateTimeFormat('en-US', { timeZone: tz, hour: 'numeric', minute: '2-digit', hour12: true });
+  const srcTime = isRange ? (tf12(srcId).format(start) + ' \u2013 ' + tf12(srcId).format(end)) : tf12(srcId).format(start);
+  let html = '<div class="qc-src">' + src.flag + ' ' + shortLabel(src.label) + ' \u00b7 ' + srcTime + '</div>';
+  const targets = list.slice(1);
+  if (!targets.length) { qcResult.innerHTML = html + '<span class="qc-hint">Add a target timezone above</span>'; return; }
+  const df = (tz) => new Intl.DateTimeFormat('en-CA', { timeZone: tz, day: '2-digit', month: '2-digit' });
+  targets.forEach(id => {
+    const tz = byId[id];
+    const time = isRange ? (tf12(id).format(start) + ' \u2013 ' + tf12(id).format(end)) : tf12(id).format(start);
+    const crosses = isRange && df(id).format(start) !== df(id).format(end);
+    html += '<div class="qc-dst"><span class="qc-flag">' + tz.flag + '</span><span class="qc-abbr">' + tz.abbr + '</span><span class="qc-time">' + time + (crosses ? '<span class="qc-badge">+1d</span>' : '') + '</span></div>';
+  });
+  qcResult.innerHTML = html;
+}
+qcInput.addEventListener('input', qcConvert);
 
 chrome.storage.sync.get({ timezones: null, sourceTz: 'America/Los_Angeles', targetTz: 'Asia/Kolkata' }, (o) => {
   list = normalizeList(o.timezones || [o.sourceTz, o.targetTz]);
