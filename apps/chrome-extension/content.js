@@ -20,6 +20,23 @@
     KST: 'Asia/Seoul', JST: 'Asia/Tokyo', AWST: 'Australia/Perth', ACST: 'Australia/Adelaide', AEST: 'Australia/Sydney',
     NZST: 'Pacific/Auckland', FJT: 'Pacific/Fiji', CHST: 'Pacific/Guam', UTC: 'UTC'
   };
+  // Map UTC offset (in minutes) → IANA timezone for common/unambiguous offsets.
+  // Whole-hour offsets that map to multiple zones use the most common one.
+  const OFFSET_TO_TZ = {
+    [-720]: 'Pacific/Kwajalein', [-660]: 'Pacific/Midway', [-600]: 'Pacific/Honolulu',
+    [-570]: 'Pacific/Marquesas', [-540]: 'America/Anchorage', [-480]: 'America/Los_Angeles',
+    [-420]: 'America/Denver', [-360]: 'America/Chicago', [-300]: 'America/New_York',
+    [-240]: 'America/Halifax', [-210]: 'America/St_Johns', [-180]: 'America/Sao_Paulo',
+    [-120]: 'Atlantic/South_Georgia', [-60]: 'Atlantic/Azores',
+    0: 'Europe/London', 60: 'Europe/Berlin', 120: 'Europe/Athens',
+    180: 'Europe/Moscow', 210: 'Asia/Tehran', 240: 'Asia/Dubai',
+    270: 'Asia/Kabul', 300: 'Asia/Karachi', 330: 'Asia/Kolkata',
+    345: 'Asia/Kathmandu', 360: 'Asia/Dhaka', 390: 'Asia/Yangon',
+    420: 'Asia/Bangkok', 480: 'Asia/Singapore', 525: 'Australia/Eucla',
+    540: 'Asia/Tokyo', 570: 'Australia/Darwin', 600: 'Australia/Sydney',
+    630: 'Australia/Lord_Howe', 660: 'Pacific/Guadalcanal', 720: 'Pacific/Auckland',
+    765: 'Pacific/Chatham', 780: 'Pacific/Apia', 840: 'Pacific/Kiritimati',
+  };
   const DAY_INDEX = { sun: 0, mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6 };
   const DAY_TOKEN_RX = /\b(Mon(?:day)?|Tue(?:sday)?|Wed(?:nesday)?|Thu(?:rsday)?|Fri(?:day)?|Sat(?:urday)?|Sun(?:day)?)\.?\b/gi;
   const TIME_RX = /(?:(?:Mon(?:day)?|Tue(?:sday)?|Wed(?:nesday)?|Thu(?:rsday)?|Fri(?:day)?|Sat(?:urday)?|Sun(?:day)?)\s*:\s*)?(\d{1,2})(?::(\d{2}))?\s*(a\.?m\.?|p\.?m\.?|a|p)?\s*[\x2D\u2013\u2014\u2212]\s*(\d{1,2})(?::(\d{2}))?\s*(a\.?m\.?|p\.?m\.?|a|p)?|(\d{1,2}):(\d{2})\s*(a\.?m\.?|p\.?m\.?|a|p)?|(\d{1,2})\s*(a\.?m\.?|p\.?m\.?|a|p)/gi;
@@ -151,6 +168,15 @@
     const m = TZ_RX.exec(t);
     TZ_RX.lastIndex = 0;
     if (m) for (let i = 1; i < m.length; i++) if (m[i]) return TZ_ABBREVS[m[i].toUpperCase()] || null;
+    // Detect GMT+5:30, UTC-8, UTC+09:00 etc. — check before bare abbreviations
+    // so "GMT+5:30" resolves to Asia/Kolkata, not Europe/London.
+    const offsetMatch = /\b(?:GMT|UTC)\s*([+-])\s*(\d{1,2})(?::(\d{2}))?\b/i.exec(t);
+    if (offsetMatch) {
+      const sign = offsetMatch[1] === '+' ? 1 : -1;
+      const totalMin = sign * (+offsetMatch[2] * 60 + (+offsetMatch[3] || 0));
+      const fromOffset = OFFSET_TO_TZ[totalMin];
+      if (fromOffset) return fromOffset;
+    }
     const bare = fromMatch(new RegExp('\\b(' + TZ_KEYS.join('|') + ')\\b', 'i'));
     if (bare) return bare;
     return null;
@@ -321,7 +347,7 @@
       const raw = m[0];
       if (isEmbeddedNumberToken(text, m.index, m.index + raw.length)) { TIME_RX.lastIndex = m.index + 1; continue; }
       const before = text.slice(Math.max(0, m.index - 30), m.index);
-      if (/\b\d{4}\s+at\s*$/i.test(before)) continue;
+      if (/\b\d{4}\s+at\s*$/i.test(before) && !/\b(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|June?|July?|Aug(?:ust)?|Sep(?:t(?:ember)?)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\b/i.test(before)) continue;
       const matched = matchedTargetLabel(text, m.index + raw.length, labels);
       if (matched) {
         frag.appendChild(document.createTextNode(text.slice(lastIdx, m.index)));
@@ -420,7 +446,7 @@
         const raw = m[0];
         if (isEmbeddedNumberToken(txt, m.index, m.index + raw.length)) { TIME_RX.lastIndex = m.index + 1; continue; }
         const before = txt.slice(Math.max(0, m.index - 30), m.index);
-        if (/\b\d{4}\s+at\s*$/i.test(before)) continue;
+        if (/\b\d{4}\s+at\s*$/i.test(before) && !/\b(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|June?|July?|Aug(?:ust)?|Sep(?:t(?:ember)?)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\b/i.test(before)) continue;
         const matched = matchedTargetLabel(txt, m.index + raw.length, labels);
         let data;
         if (matched) {
