@@ -2,6 +2,10 @@
 
 Hover a time. Know it in yours.
 
+## **[Download & Install on Chrome — Available on the Chrome Web Store](https://chromewebstore.google.com/detail/kobpodmjbeheahbgfdjefkphgfabjppn?utm_source=item-share-cb)**
+
+> **Free to download.** Click the link above to install TimeHere directly from the Chrome Web Store — no build step required.
+
 TimeHere is organized as a multi-app repository. The active implementation today is the Chrome extension.
 
 ## Apps
